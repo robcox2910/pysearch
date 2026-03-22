@@ -62,14 +62,18 @@ def compute_tfidf(term: str, doc_id: str, index: InvertedIndex) -> float:
 
 
 def rank_results(
-    term: str,
+    terms: str | list[str],
     doc_ids: list[str],
     index: InvertedIndex,
 ) -> list[tuple[str, float]]:
-    """Rank documents by their TF-IDF score for *term*, highest first.
+    """Rank documents by their TF-IDF score across all *terms*, highest first.
+
+    Think of it like a school report card: each subject (term) gives a grade
+    (TF-IDF score), and we add them all up to get the final grade. A document
+    that scores well on *every* search word floats to the top.
 
     Args:
-        term: The search term.
+        terms: A single search term or a list of terms.
         doc_ids: The candidate document IDs to rank.
         index: The inverted index to query.
 
@@ -77,6 +81,10 @@ def rank_results(
         A list of ``(doc_id, score)`` tuples sorted by score descending.
 
     """
-    scored = [(doc_id, compute_tfidf(term, doc_id, index)) for doc_id in doc_ids]
+    term_list = [terms] if isinstance(terms, str) else terms
+    scored = [
+        (doc_id, sum(compute_tfidf(t, doc_id, index) for t in term_list))
+        for doc_id in doc_ids
+    ]
     scored.sort(key=lambda pair: pair[1], reverse=True)
     return scored
