@@ -11,8 +11,6 @@ The **query parser** breaks your search text into a structured query:
 ```
 "cat AND dog"       → AND(cat, dog)     -- both required
 "cat OR dog"        → OR(cat, dog)      -- either works
-"cat NOT dog"       → NOT(cat, dog)     -- cat but not dog
-'"exact phrase"'    → PHRASE("exact phrase") -- these words in order
 "cat"               → TERM(cat)         -- just one word
 ```
 
@@ -33,7 +31,7 @@ query = parse_query("cat OR dog")
 - Single words parse as term queries.
 - AND combines two terms.
 - OR combines two terms.
-- The parser handles multiple operators.
+- The parser handles AND and OR between two terms.
 
 ## What's Next?
 

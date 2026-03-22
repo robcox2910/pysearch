@@ -39,7 +39,7 @@ Our simplified stemmer handles common English suffixes.
 - Everything is lowercased.
 - Punctuation is removed.
 - Stop words are filtered out.
-- Basic stemming works (running → run).
+- Basic stemming works (played → play).
 
 ## Next Up
 

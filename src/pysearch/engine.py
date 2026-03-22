@@ -8,7 +8,6 @@ The search engine is the librarian herself. She knows how to file new books
 from pysearch.index import InvertedIndex
 from pysearch.query import AndQuery, SearchQuery, TermQuery, parse_query
 from pysearch.tfidf import rank_results
-from pysearch.tokenizer import simple_stem
 
 
 class SearchEngine:
@@ -65,7 +64,7 @@ class SearchEngine:
 
         """
         if isinstance(query, TermQuery):
-            return self._index.search(simple_stem(query.term))
+            return self._index.search(query.term)
         if isinstance(query, AndQuery):
             left = set(self._execute(query.left))
             right = set(self._execute(query.right))
