@@ -44,9 +44,9 @@ class SearchEngine:
         if not doc_ids:
             return []
 
-        # Rank by the first term in the query for simplicity.
-        primary_term = self._primary_term(query)
-        return rank_results(primary_term, doc_ids, self._index)
+        # Rank by ALL terms in the query so every word counts.
+        all_terms = self._collect_terms(query)
+        return rank_results(all_terms, doc_ids, self._index)
 
     @property
     def document_count(self) -> int:
@@ -75,17 +75,20 @@ class SearchEngine:
         return list(left | right)
 
     @staticmethod
-    def _primary_term(query: SearchQuery) -> str:
-        """Extract the leftmost term from a query tree for ranking.
+    def _collect_terms(query: SearchQuery) -> list[str]:
+        """Collect every term from a query tree for ranking.
+
+        Walk the whole tree and gather every leaf -- like picking every
+        apple off a tree instead of just the first one you see.
 
         Args:
             query: A parsed ``SearchQuery`` tree.
 
         Returns:
-            The leftmost term string.
+            A list of all term strings in the query.
 
         """
         if isinstance(query, TermQuery):
-            return query.term
-        # Must be AndQuery or OrQuery.
-        return SearchEngine._primary_term(query.left)
+            return [query.term]
+        # Must be AndQuery or OrQuery -- collect from both branches.
+        return SearchEngine._collect_terms(query.left) + SearchEngine._collect_terms(query.right)

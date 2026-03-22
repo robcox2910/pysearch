@@ -5,8 +5,6 @@ parser reads what you typed -- like ``cats AND dogs`` -- and turns it into a
 tree that the search engine can execute step by step.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from pysearch.errors import QueryParseError
@@ -23,16 +21,16 @@ class TermQuery:
 class AndQuery:
     """A query requiring both the left and right sub-queries to match."""
 
-    left: SearchQuery
-    right: SearchQuery
+    left: TermQuery | AndQuery | OrQuery
+    right: TermQuery | AndQuery | OrQuery
 
 
 @dataclass
 class OrQuery:
     """A query requiring either the left or right sub-query to match."""
 
-    left: SearchQuery
-    right: SearchQuery
+    left: TermQuery | AndQuery | OrQuery
+    right: TermQuery | AndQuery | OrQuery
 
 
 SearchQuery = TermQuery | AndQuery | OrQuery
