@@ -110,16 +110,17 @@ Full documentation with kid-friendly explanations of every concept:
 
 PySearch is part of a series of educational "build it from scratch" projects:
 
-| Project | What it builds |
-|---------|---------------|
-| [PyOS](https://github.com/robcox2910/pyos) | An operating system |
-| [Pebble](https://github.com/robcox2910/pebble) | A database engine |
-| [PyDB](https://github.com/robcox2910/pydb) | A SQL database |
-| [PyStack](https://github.com/robcox2910/pystack) | A network stack |
-| [PyWeb](https://github.com/robcox2910/pyweb) | An HTTP framework |
-| [PyGit](https://github.com/robcox2910/pygit) | A version control system |
-| [PyNet](https://github.com/robcox2910/pynet) | A network protocol suite |
-| [PyCrypt](https://github.com/robcox2910/pycrypt) | A cryptography library |
+| Project | What It Teaches |
+|---------|----------------|
+| [PyOS](https://github.com/robcox2910/py-os) | Operating systems |
+| [Pebble](https://github.com/robcox2910/pebble-lang) | Compilers and programming languages |
+| [PyDB](https://github.com/robcox2910/pydb) | Relational databases |
+| [PyStack](https://github.com/robcox2910/pystack) | Full-stack integration |
+| [PyWeb](https://github.com/robcox2910/pyweb) | HTTP web servers |
+| [PyGit](https://github.com/robcox2910/pygit) | Version control |
+| [PyCrypt](https://github.com/robcox2910/pycrypt) | Cryptography |
+| [PyNet](https://github.com/robcox2910/pynet) | Networking |
+| [PyMQ](https://github.com/robcox2910/pymq) | Message queues |
 
 ## License
 
