@@ -54,6 +54,7 @@ def parse_query(text: str) -> SearchQuery:
 
     Raises:
         QueryParseError: If the query is empty or malformed.
+
     """
     stripped = text.strip()
     if not stripped:

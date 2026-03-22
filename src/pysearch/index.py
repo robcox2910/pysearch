@@ -8,7 +8,7 @@ about a word, she just flips to that page in her notebook -- instant answer!
 
 from collections import defaultdict
 
-from pysearch.tokenizer import tokenize
+from pysearch.tokenizer import simple_stem, tokenize
 
 
 class InvertedIndex:
@@ -30,6 +30,7 @@ class InvertedIndex:
         Args:
             doc_id: A unique identifier for the document.
             text: The raw document text.
+
         """
         self._doc_count += 1
         tokens = tokenize(text)
@@ -44,9 +45,8 @@ class InvertedIndex:
 
         Returns:
             A list of matching document IDs.
-        """
-        from pysearch.tokenizer import simple_stem
 
+        """
         stemmed = simple_stem(term.lower())
         return list(self._index.get(stemmed, {}))
 
@@ -58,6 +58,7 @@ class InvertedIndex:
 
         Returns:
             Document IDs present in every term's posting list (intersection).
+
         """
         if not terms:
             return []
@@ -75,6 +76,7 @@ class InvertedIndex:
 
         Returns:
             Document IDs present in at least one term's posting list (union).
+
         """
         if not terms:
             return []
@@ -97,9 +99,8 @@ class InvertedIndex:
 
         Returns:
             The number of occurrences, or 0 if not found.
-        """
-        from pysearch.tokenizer import simple_stem
 
+        """
         stemmed = simple_stem(term.lower())
         return self._index.get(stemmed, {}).get(doc_id, 0)
 
@@ -111,8 +112,7 @@ class InvertedIndex:
 
         Returns:
             The number of documents containing the term.
-        """
-        from pysearch.tokenizer import simple_stem
 
+        """
         stemmed = simple_stem(term.lower())
         return len(self._index.get(stemmed, {}))

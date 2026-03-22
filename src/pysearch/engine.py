@@ -6,7 +6,7 @@ The search engine is the librarian herself. She knows how to file new books
 """
 
 from pysearch.index import InvertedIndex
-from pysearch.query import AndQuery, OrQuery, SearchQuery, TermQuery, parse_query
+from pysearch.query import AndQuery, SearchQuery, TermQuery, parse_query
 from pysearch.tfidf import rank_results
 from pysearch.tokenizer import simple_stem
 
@@ -24,6 +24,7 @@ class SearchEngine:
         Args:
             doc_id: A unique identifier for the document.
             text: The raw document text.
+
         """
         self._index.add_document(doc_id, text)
 
@@ -36,6 +37,7 @@ class SearchEngine:
 
         Returns:
             A list of ``(doc_id, score)`` tuples sorted by relevance.
+
         """
         query = parse_query(query_text)
         doc_ids = self._execute(query)
@@ -60,6 +62,7 @@ class SearchEngine:
 
         Returns:
             A list of matching document IDs.
+
         """
         if isinstance(query, TermQuery):
             return self._index.search(simple_stem(query.term))
@@ -67,12 +70,10 @@ class SearchEngine:
             left = set(self._execute(query.left))
             right = set(self._execute(query.right))
             return list(left & right)
-        if isinstance(query, OrQuery):
-            left = set(self._execute(query.left))
-            right = set(self._execute(query.right))
-            return list(left | right)
-        msg = f"Unknown query type: {type(query)}"  # pragma: no cover
-        raise TypeError(msg)  # pragma: no cover
+        # Must be OrQuery (type narrowing guarantees this).
+        left = set(self._execute(query.left))
+        right = set(self._execute(query.right))
+        return list(left | right)
 
     @staticmethod
     def _primary_term(query: SearchQuery) -> str:
@@ -83,10 +84,9 @@ class SearchEngine:
 
         Returns:
             The leftmost term string.
+
         """
         if isinstance(query, TermQuery):
             return query.term
-        if isinstance(query, (AndQuery, OrQuery)):
-            return SearchEngine._primary_term(query.left)
-        msg = f"Unknown query type: {type(query)}"  # pragma: no cover
-        raise TypeError(msg)  # pragma: no cover
+        # Must be AndQuery or OrQuery.
+        return SearchEngine._primary_term(query.left)

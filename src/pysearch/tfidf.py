@@ -21,6 +21,7 @@ def compute_tf(term: str, doc_id: str, index: InvertedIndex) -> float:
 
     Returns:
         The raw count of *term* in *doc_id* as a float.
+
     """
     return float(index.get_term_frequency(term, doc_id))
 
@@ -37,6 +38,7 @@ def compute_idf(term: str, index: InvertedIndex) -> float:
 
     Returns:
         The IDF value, or 0.0 if the term appears in no documents.
+
     """
     df = index.get_document_frequency(term)
     if df == 0:
@@ -54,6 +56,7 @@ def compute_tfidf(term: str, doc_id: str, index: InvertedIndex) -> float:
 
     Returns:
         The product of TF and IDF.
+
     """
     return compute_tf(term, doc_id, index) * compute_idf(term, index)
 
@@ -72,6 +75,7 @@ def rank_results(
 
     Returns:
         A list of ``(doc_id, score)`` tuples sorted by score descending.
+
     """
     scored = [(doc_id, compute_tfidf(term, doc_id, index)) for doc_id in doc_ids]
     scored.sort(key=lambda pair: pair[1], reverse=True)

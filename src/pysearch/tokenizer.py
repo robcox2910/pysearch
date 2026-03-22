@@ -8,31 +8,33 @@ index so you can find it later.
 
 import re
 
-STOP_WORDS: frozenset[str] = frozenset({
-    "the",
-    "a",
-    "an",
-    "is",
-    "are",
-    "was",
-    "were",
-    "in",
-    "on",
-    "at",
-    "to",
-    "for",
-    "of",
-    "and",
-    "or",
-    "but",
-    "not",
-    "it",
-    "this",
-    "that",
-    "with",
-    "from",
-    "by",
-})
+STOP_WORDS: frozenset[str] = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "and",
+        "or",
+        "but",
+        "not",
+        "it",
+        "this",
+        "that",
+        "with",
+        "from",
+        "by",
+    }
+)
 
 _SUFFIX_ORDER: tuple[str, ...] = ("ing", "ed", "ly", "er", "est", "s")
 _MIN_STEM_LENGTH = 3
@@ -46,6 +48,7 @@ def tokenize(text: str) -> list[str]:
 
     Returns:
         A list of stemmed, lowercase tokens with stop words removed.
+
     """
     words = re.split(r"[^a-zA-Z0-9]+", text.lower())
     return [simple_stem(w) for w in words if w and w not in STOP_WORDS]
@@ -62,6 +65,7 @@ def simple_stem(word: str) -> str:
 
     Returns:
         The stemmed word.
+
     """
     for suffix in _SUFFIX_ORDER:
         if word.endswith(suffix) and len(word) - len(suffix) >= _MIN_STEM_LENGTH:
