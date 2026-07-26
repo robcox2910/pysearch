@@ -83,8 +83,7 @@ def rank_results(
     """
     term_list = [terms] if isinstance(terms, str) else terms
     scored = [
-        (doc_id, sum(compute_tfidf(t, doc_id, index) for t in term_list))
-        for doc_id in doc_ids
+        (doc_id, sum(compute_tfidf(t, doc_id, index) for t in term_list)) for doc_id in doc_ids
     ]
     scored.sort(key=lambda pair: pair[1], reverse=True)
     return scored
