@@ -18,7 +18,7 @@ class SearchEngine:
         self._index = InvertedIndex()
 
     def add(self, doc_id: str, text: str) -> None:
-        """Add a document to the search engine.
+        """Hand the librarian a new book to file away.
 
         Args:
             doc_id: A unique identifier for the document.
@@ -28,7 +28,7 @@ class SearchEngine:
         self._index.add_document(doc_id, text)
 
     def search(self, query_text: str) -> list[tuple[str, float]]:
-        """Parse *query_text*, execute it, and return results ranked by TF-IDF.
+        """Ask the librarian a question and get back the best-matching books, best first.
 
         Args:
             query_text: A query string such as ``"cats"``, ``"cats AND dogs"``,

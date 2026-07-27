@@ -12,7 +12,7 @@ from pysearch.index import InvertedIndex
 
 
 def compute_tf(term: str, doc_id: str, index: InvertedIndex) -> float:
-    """Compute the term frequency of *term* in *doc_id*.
+    """Tally how many times a word shows up in one document -- more mentions, more relevant.
 
     Args:
         term: The search term.
@@ -27,10 +27,13 @@ def compute_tf(term: str, doc_id: str, index: InvertedIndex) -> float:
 
 
 def compute_idf(term: str, index: InvertedIndex) -> float:
-    """Compute the inverse document frequency of *term*.
+    """Figure out how special a word is -- common words like "the" score near zero, rare words like "dinosaur" score high.
 
     Uses the formula ``log(N / df)`` where *N* is the total number of
-    documents and *df* is the number of documents containing *term*.
+    documents and *df* is the number of documents containing *term*. Note that a
+    word appearing in *every* document (or the only document) scores exactly
+    ``0.0`` -- a fun exercise is to smooth this to ``log(N / df) + 1`` so even a
+    lone match keeps a small positive score.
 
     Args:
         term: The search term.
@@ -47,7 +50,7 @@ def compute_idf(term: str, index: InvertedIndex) -> float:
 
 
 def compute_tfidf(term: str, doc_id: str, index: InvertedIndex) -> float:
-    """Compute the TF-IDF score for *term* in *doc_id*.
+    """Blend "how often" with "how special" into one relevance score for a word in a document.
 
     Args:
         term: The search term.

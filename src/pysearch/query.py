@@ -37,7 +37,7 @@ SearchQuery = TermQuery | AndQuery | OrQuery
 
 
 def parse_query(text: str) -> SearchQuery:
-    """Parse a text query into a ``SearchQuery`` tree.
+    """Read what you typed -- like "cats AND dogs" -- and turn it into a plan the engine can follow.
 
     Supported formats:
     - ``"word"`` -- a single term

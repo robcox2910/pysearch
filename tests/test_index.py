@@ -58,6 +58,13 @@ class TestSearch:
         result = idx.search("HELLO")
         assert "doc1" in result
 
+    def test_plural_document_matches_singular_query(self) -> None:
+        """Verify a document with plural words is found by a singular search."""
+        idx = InvertedIndex()
+        idx.add_document("doc1", "the foxes ate the berries")
+        assert "doc1" in idx.search("fox")
+        assert "doc1" in idx.search("berry")
+
 
 class TestBooleanSearch:
     """Test AND and OR search operations."""

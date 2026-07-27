@@ -35,6 +35,11 @@ Before indexing, we break text into individual words (tokens):
 We also **normalize** -- lowercase everything, remove punctuation,
 so "Fox" and "fox" match.
 
+> This first split keeps every word so you can see the raw pieces. Two more
+> tidy-up steps come next: **stop-word removal** (dropping boring words like
+> "the") and **stemming** (turning "foxes" into "fox"). With those added, our
+> real tokenizer would return `["quick", "brown", "fox"]`.
+
 ### 2. Inverted Index -- The Magic Data Structure
 
 A normal index maps documents to words (like a table of contents).
