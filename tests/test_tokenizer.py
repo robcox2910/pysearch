@@ -67,6 +67,11 @@ class TestTokenize:
         assert isinstance(STOP_WORDS, frozenset)
         assert len(STOP_WORDS) == STOP_WORD_COUNT
 
+    def test_plural_matches_singular(self) -> None:
+        """Verify a plural word stems to the same token as its singular form."""
+        assert tokenize("foxes")[0] == tokenize("fox")[0]
+        assert tokenize("berries")[0] == tokenize("berry")[0]
+
     def test_tabs_and_newlines(self) -> None:
         """Verify tabs and newlines are treated as separators."""
         result = tokenize("hello\tworld\nfoo")
@@ -102,6 +107,16 @@ class TestSimpleStem:
         """Verify 's' suffix is removed."""
         assert simple_stem("cats") == "cat"
 
+    def test_strip_es(self) -> None:
+        """Verify plural '-es' is dropped so 'foxes' matches 'fox'."""
+        assert simple_stem("foxes") == "fox"
+        assert simple_stem("boxes") == "box"
+
+    def test_strip_ies(self) -> None:
+        """Verify plural '-ies' becomes '-y' so 'berries' matches 'berry'."""
+        assert simple_stem("berries") == "berry"
+        assert simple_stem("berry") == "berry"
+
     def test_no_strip_short_word(self) -> None:
         """Verify suffix is not removed if result would be too short."""
         assert simple_stem("bed") == "bed"
@@ -111,5 +126,7 @@ class TestSimpleStem:
         assert simple_stem("python") == "python"
 
     def test_priority_ing_over_s(self) -> None:
-        """Verify 'ing' is checked before 's' for words ending in 'ings'."""
-        assert simple_stem("savings") == "saving"  # strips "s" first (checked in order)
+        """Verify only the trailing 's' is stripped from 'savings' (the 'ing' isn't the ending)."""
+        assert (
+            simple_stem("savings") == "saving"
+        )  # only trailing "s" strips; "ing" isn't at the end

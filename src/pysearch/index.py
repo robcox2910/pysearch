@@ -25,7 +25,7 @@ class InvertedIndex:
         self._doc_count = 0
 
     def add_document(self, doc_id: str, text: str) -> None:
-        """Tokenize *text* and add every token to the index under *doc_id*.
+        """File a new book away -- read its words and note which ones live in this document.
 
         Args:
             doc_id: A unique identifier for the document.
@@ -38,7 +38,7 @@ class InvertedIndex:
             self._index[token][doc_id] += 1
 
     def search(self, term: str) -> list[str]:
-        """Return document IDs that contain *term*.
+        """Ask the librarian which books contain a word -- she flips to that page and reads the list.
 
         Args:
             term: A single search term (will be stemmed).
@@ -51,7 +51,7 @@ class InvertedIndex:
         return list(self._index.get(stemmed, {}))
 
     def search_and(self, terms: list[str]) -> list[str]:
-        """Return document IDs that contain **all** of the given terms.
+        """Find books that mention EVERY word you asked for -- both "cats" and "dogs", not just one.
 
         Args:
             terms: A list of search terms.
@@ -69,7 +69,7 @@ class InvertedIndex:
         return list(result)
 
     def search_or(self, terms: list[str]) -> list[str]:
-        """Return document IDs that contain **any** of the given terms.
+        """Find books that mention ANY of your words -- "cats" or "dogs" or both will do.
 
         Args:
             terms: A list of search terms.
