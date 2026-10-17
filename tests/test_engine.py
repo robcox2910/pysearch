@@ -3,7 +3,7 @@
 import pytest
 
 from pysearch.engine import SearchEngine
-from pysearch.errors import QueryParseError
+from pysearch.errors import DuplicateDocumentError, QueryParseError
 
 ZERO = 0
 ONE = 1
@@ -111,3 +111,51 @@ class TestEngineErrors:
         engine = SearchEngine()
         with pytest.raises(QueryParseError):
             engine.search("")
+
+
+class TestQueriesMatchHowDocumentsWereFiled:
+    """Whatever you type, it's cleaned up the same way the documents were."""
+
+    def test_punctuation_in_query_still_finds_the_word(self) -> None:
+        """Regression: "fox," used to return nothing."""
+        engine = SearchEngine()
+        engine.add("d1", "The quick brown fox.")
+        assert [doc for doc, _ in engine.search("fox,")] == ["d1"]
+
+    def test_hyphenated_query_finds_hyphenated_text(self) -> None:
+        """Regression: "state-of-the-art" used to return nothing."""
+        engine = SearchEngine()
+        engine.add("d1", "A state-of-the-art telescope.")
+        engine.add("d2", "The state fair.")
+        assert [doc for doc, _ in engine.search("state-of-the-art")] == ["d1"]
+
+    def test_several_words_find_documents_with_all_of_them(self) -> None:
+        """Regression: "cats dogs" used to raise QueryParseError."""
+        engine = SearchEngine()
+        engine.add("both", "cats and dogs")
+        engine.add("cats_only", "cats nap")
+        assert [doc for doc, _ in engine.search("cats dogs")] == ["both"]
+
+
+class TestDocumentsAreFiledOnce:
+    """Each document id may only be added once."""
+
+    def test_adding_the_same_id_twice_raises(self) -> None:
+        """Regression: re-adding an id inflated the count and skewed every score."""
+        engine = SearchEngine()
+        engine.add("d1", "cats")
+        with pytest.raises(DuplicateDocumentError, match="d1"):
+            engine.add("d1", "cats again")
+        assert engine.document_count == ONE
+
+
+class TestTiesAreOrderedByName:
+    """Equally good results always come back in the same order."""
+
+    def test_equal_scores_are_sorted_by_document_id(self) -> None:
+        """Regression: ties came back in a random, hash-dependent order."""
+        engine = SearchEngine()
+        for doc_id in ("pear", "apple", "mango"):
+            engine.add(doc_id, "fruit salad")
+        engine.add("other", "vegetables")
+        assert [doc for doc, _ in engine.search("fruit")] == ["apple", "mango", "pear"]

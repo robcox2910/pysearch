@@ -40,6 +40,25 @@ _SUFFIX_ORDER: tuple[str, ...] = ("ing", "ed", "ly", "er", "est", "es", "s")
 _MIN_STEM_LENGTH = 3
 
 
+def split_words(text: str) -> list[str]:
+    """Cut text into clean words -- lowercased, punctuation gone, boring words tossed.
+
+    This is the first half of :func:`tokenize`, without the stemming. Search
+    queries use it too, so a query word is cleaned up *exactly* the way the
+    documents were: ``"fox,"`` becomes ``"fox"``, and ``"state-of-the-art"``
+    becomes ``["state", "art"]``.
+
+    Args:
+        text: The raw text to split.
+
+    Returns:
+        A list of lowercase words with stop words removed (not yet stemmed).
+
+    """
+    words = re.split(r"[^a-zA-Z0-9]+", text.lower())
+    return [w for w in words if w and w not in STOP_WORDS]
+
+
 def tokenize(text: str) -> list[str]:
     """Cut a sentence into clean word cards -- lowercased, punctuation gone, boring words tossed.
 
@@ -50,8 +69,7 @@ def tokenize(text: str) -> list[str]:
         A list of stemmed, lowercase tokens with stop words removed.
 
     """
-    words = re.split(r"[^a-zA-Z0-9]+", text.lower())
-    return [simple_stem(w) for w in words if w and w not in STOP_WORDS]
+    return [simple_stem(w) for w in split_words(text)]
 
 
 def simple_stem(word: str) -> str:
