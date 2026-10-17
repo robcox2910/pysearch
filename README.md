@@ -106,6 +106,8 @@ print(engine.search('hello'))
 Full documentation with kid-friendly explanations of every concept:
 [https://robcox2910.github.io/pysearch/](https://robcox2910.github.io/pysearch/)
 
+Saving an engine to disk and loading it back: [Saving Your Index](docs/concepts/saving.md).
+
 ## Releasing
 
 Other projects in the series ([PyStack](https://github.com/robcox2910/pystack)) use a pinned release of this one,
