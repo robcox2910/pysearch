@@ -88,5 +88,7 @@ def rank_results(
     scored = [
         (doc_id, sum(compute_tfidf(t, doc_id, index) for t in term_list)) for doc_id in doc_ids
     ]
-    scored.sort(key=lambda pair: pair[1], reverse=True)
+    # Best score first; equal scores are listed by document id so the
+    # order never depends on luck.
+    scored.sort(key=lambda pair: (-pair[1], pair[0]))
     return scored

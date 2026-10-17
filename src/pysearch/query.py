@@ -8,6 +8,7 @@ tree that the search engine can execute step by step.
 from dataclasses import dataclass
 
 from pysearch.errors import QueryParseError
+from pysearch.tokenizer import split_words
 
 
 @dataclass
@@ -36,13 +37,24 @@ class OrQuery:
 SearchQuery = TermQuery | AndQuery | OrQuery
 
 
+_OPERATORS = frozenset({"AND", "OR"})
+
+
 def parse_query(text: str) -> SearchQuery:
     """Read what you typed -- like "cats AND dogs" -- and turn it into a plan the engine can follow.
 
     Supported formats:
+
     - ``"word"`` -- a single term
-    - ``"a AND b"`` -- both terms must match
-    - ``"a OR b"`` -- either term must match
+    - ``"a AND b"`` / ``"a OR b"`` -- both / either must match
+    - ``"a b"`` -- words next to each other must *all* match (an implied AND)
+    - longer chains like ``"a AND b OR c"`` are read left to right:
+      ``(a AND b) OR c``
+
+    Each word is cleaned up exactly like document text (see
+    :func:`~pysearch.tokenizer.split_words`): punctuation and stop words go,
+    and a word that splits into pieces (``"state-of-the-art"``) needs all of
+    its pieces.
 
     Args:
         text: The raw query string.
@@ -51,32 +63,56 @@ def parse_query(text: str) -> SearchQuery:
         A ``SearchQuery`` representing the parsed query.
 
     Raises:
-        QueryParseError: If the query is empty or malformed.
+        QueryParseError: If the query is empty, has nothing searchable, or
+            has an operator without a word on both sides.
 
     """
-    stripped = text.strip()
-    if not stripped:
+    words = text.split()
+    if not words:
         msg = "Query must not be empty."
         raise QueryParseError(msg)
 
-    tokens = stripped.split()
+    result: SearchQuery | None = None
+    pending_operator = "AND"
+    expecting_term = True
+    for word in words:
+        operator = word.upper()
+        if operator in _OPERATORS:
+            if expecting_term:
+                msg = f"The {operator} operator needs a word on both sides: {text!r}"
+                raise QueryParseError(msg)
+            pending_operator = operator
+            expecting_term = True
+            continue
+        term = _word_query(word)
+        if term is None:
+            continue  # a stop word or bare punctuation -- nothing to search for
+        result = term if result is None else _combine(result, pending_operator, term)
+        pending_operator = "AND"
+        expecting_term = False
 
-    if len(tokens) == 1:
-        return TermQuery(term=tokens[0].lower())
+    if expecting_term and result is not None:
+        msg = f"The {pending_operator} operator needs a word on both sides: {text!r}"
+        raise QueryParseError(msg)
+    if result is None:
+        msg = f"Query has no searchable words (only stop words?): {text!r}"
+        raise QueryParseError(msg)
+    return result
 
-    expected_token_count = 3
-    if len(tokens) == expected_token_count:
-        left, operator, right = tokens
-        if operator.upper() == "AND":
-            return AndQuery(
-                left=TermQuery(term=left.lower()),
-                right=TermQuery(term=right.lower()),
-            )
-        if operator.upper() == "OR":
-            return OrQuery(
-                left=TermQuery(term=left.lower()),
-                right=TermQuery(term=right.lower()),
-            )
 
-    msg = f"Cannot parse query: {text!r}"
-    raise QueryParseError(msg)
+def _word_query(word: str) -> SearchQuery | None:
+    """Turn one typed word into a query (several pieces must all match)."""
+    pieces = [TermQuery(term=piece) for piece in split_words(word)]
+    if not pieces:
+        return None
+    query: SearchQuery = pieces[0]
+    for piece in pieces[1:]:
+        query = AndQuery(left=query, right=piece)
+    return query
+
+
+def _combine(left: SearchQuery, operator: str, right: SearchQuery) -> SearchQuery:
+    """Join two queries with AND or OR."""
+    if operator == "OR":
+        return OrQuery(left=left, right=right)
+    return AndQuery(left=left, right=right)

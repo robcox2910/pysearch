@@ -82,12 +82,51 @@ class TestQueryErrors:
         with pytest.raises(QueryParseError):
             parse_query("   ")
 
-    def test_invalid_operator_raises(self) -> None:
-        """Verify an unknown operator raises QueryParseError."""
-        with pytest.raises(QueryParseError):
-            parse_query("cats XOR dogs")
+    def test_unknown_operator_is_just_another_word(self) -> None:
+        """XOR isn't an operator, so it's searched for like any word (implicit AND)."""
+        assert parse_query("cats XOR dogs") == AndQuery(
+            left=AndQuery(left=TermQuery(term="cats"), right=TermQuery(term="xor")),
+            right=TermQuery(term="dogs"),
+        )
 
-    def test_too_many_tokens_raises(self) -> None:
-        """Verify more than three tokens raises QueryParseError."""
-        with pytest.raises(QueryParseError):
-            parse_query("cats AND dogs AND fish")
+    def test_long_chains_are_read_left_to_right(self) -> None:
+        """Regression: more than two terms used to be rejected."""
+        assert parse_query("cats AND dogs OR fish") == OrQuery(
+            left=AndQuery(left=TermQuery(term="cats"), right=TermQuery(term="dogs")),
+            right=TermQuery(term="fish"),
+        )
+
+
+class TestQueryWords:
+    """Query words are cleaned up exactly like document words."""
+
+    def test_bare_words_mean_and(self) -> None:
+        """Regression: "cats dogs" used to raise; now it means cats AND dogs."""
+        assert parse_query("cats dogs") == AndQuery(
+            left=TermQuery(term="cats"), right=TermQuery(term="dogs")
+        )
+
+    def test_punctuation_is_stripped(self) -> None:
+        """Regression: "fox," used to be searched for with its comma."""
+        assert parse_query("fox,") == TermQuery(term="fox")
+
+    def test_hyphenated_word_becomes_its_pieces(self) -> None:
+        """A word that splits into pieces needs all of them (stop words dropped)."""
+        assert parse_query("state-of-the-art") == AndQuery(
+            left=TermQuery(term="state"), right=TermQuery(term="art")
+        )
+
+    def test_stop_words_are_skipped(self) -> None:
+        """Boring words like "the" are ignored, just as when indexing."""
+        assert parse_query("the cats") == TermQuery(term="cats")
+
+    @pytest.mark.parametrize("text", ["AND cats", "cats OR", "cats AND OR dogs"])
+    def test_dangling_operators_raise(self, text: str) -> None:
+        """An operator needs a word on both sides."""
+        with pytest.raises(QueryParseError, match="operator"):
+            parse_query(text)
+
+    def test_only_stop_words_raises(self) -> None:
+        """A query with nothing searchable left is reported clearly."""
+        with pytest.raises(QueryParseError, match="searchable"):
+            parse_query("the of a")

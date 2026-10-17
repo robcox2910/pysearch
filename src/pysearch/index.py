@@ -8,6 +8,7 @@ about a word, she just flips to that page in her notebook -- instant answer!
 
 from collections import defaultdict
 
+from pysearch.errors import DuplicateDocumentError
 from pysearch.tokenizer import simple_stem, tokenize
 
 
@@ -22,7 +23,7 @@ class InvertedIndex:
     def __init__(self) -> None:
         """Initialise an empty inverted index."""
         self._index: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-        self._doc_count = 0
+        self._doc_ids: set[str] = set()
 
     def add_document(self, doc_id: str, text: str) -> None:
         """File a new book away -- read its words and note which ones live in this document.
@@ -31,8 +32,16 @@ class InvertedIndex:
             doc_id: A unique identifier for the document.
             text: The raw document text.
 
+        Raises:
+            DuplicateDocumentError: If a document with this id was already
+                added -- filing the same book twice would make every word in
+                it look more common than it really is.
+
         """
-        self._doc_count += 1
+        if doc_id in self._doc_ids:
+            msg = f"Document {doc_id!r} is already in the index"
+            raise DuplicateDocumentError(msg)
+        self._doc_ids.add(doc_id)
         tokens = tokenize(text)
         for token in tokens:
             self._index[token][doc_id] += 1
@@ -88,7 +97,7 @@ class InvertedIndex:
     @property
     def document_count(self) -> int:
         """Return the total number of indexed documents."""
-        return self._doc_count
+        return len(self._doc_ids)
 
     def get_term_frequency(self, term: str, doc_id: str) -> int:
         """Return how many times *term* appears in *doc_id*.
