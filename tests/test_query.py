@@ -83,7 +83,7 @@ class TestQueryErrors:
             parse_query("   ")
 
     def test_unknown_operator_is_just_another_word(self) -> None:
-        """ "XOR" isn't an operator, so it's searched for like any word (implicit AND)."""
+        """XOR isn't an operator, so it's searched for like any word (implicit AND)."""
         assert parse_query("cats XOR dogs") == AndQuery(
             left=AndQuery(left=TermQuery(term="cats"), right=TermQuery(term="xor")),
             right=TermQuery(term="dogs"),
