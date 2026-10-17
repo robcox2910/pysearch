@@ -101,6 +101,10 @@ print(engine.search('hello'))
 "
 ```
 
+## Concepts
+
+Saving an engine to disk and loading it back: [Saving Your Index](docs/concepts/saving.md).
+
 <!-- docs:start -->
 ## Documentation
 
