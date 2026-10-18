@@ -61,7 +61,7 @@ def libraries() -> st.SearchStrategy[dict[str, Book]]:
 
 def questions() -> st.SearchStrategy[list[str]]:
     """Make a question as a list of pieces: words, with AND or OR (or nothing) between them."""
-    joins = st.sampled_from(("AND", "OR", "and", "or", ""))
+    joins = st.sampled_from(JOINS)
     rest = st.lists(st.tuples(joins, st.sampled_from(SEARCH_WORDS)), max_size=4)
     return st.tuples(st.sampled_from(SEARCH_WORDS), rest).map(lay_out_question)
 ```
@@ -91,8 +91,9 @@ Line by line:
   where words share roots on purpose (`cat`, `cats`, `Cat`; `berry`,
   `berries`), plus stop words like `the` that must be ignored.
 - **`questions()`** makes a first word, then up to four more, each with
-  `AND`, `OR` (in either case) or nothing in front. `lay_out_question`
-  flattens that into a list such as `['cats', 'OR', 'dog', 'fox']`.
+  one of the `JOINS` in front: `AND`, `OR` (in either case) or nothing.
+  `lay_out_question` flattens that into a list such as
+  `['cats', 'OR', 'dog', 'fox']`.
 - **`@given(...)`** tells Hypothesis to run the test many times (100 in
   a normal run), each with a fresh library and question.
 - **`engine_holding(library)`** is a helper that makes a `SearchEngine`

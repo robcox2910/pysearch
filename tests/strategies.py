@@ -16,7 +16,7 @@ from tests.brute_force import Book
 
 # Words a question can use. None of them is a stop word, so every one of
 # them is really searched for. Some share a root on purpose.
-SEARCH_WORDS = (
+SEARCH_WORDS: tuple[str, ...] = (
     "cat",
     "cats",
     "Cat",
@@ -33,10 +33,14 @@ SEARCH_WORDS = (
 )
 
 # Stop words the librarian ignores. Books may contain them; questions don't.
-IGNORED_WORDS = ("the", "and", "AND", "or", "is")
+IGNORED_WORDS: tuple[str, ...] = ("the", "and", "AND", "or", "is")
 
 # What can sit between two words in a book: tokenize splits on all of them.
-GAPS = (" ", "  ", ", ", ". ", "-", "!\n")
+GAPS: tuple[str, ...] = (" ", "  ", ", ", ". ", "-", "!\n")
+
+# What can join two words in a question: an operator in either case, or
+# nothing at all (two words side by side must both match).
+JOINS: tuple[str, ...] = ("AND", "OR", "and", "or", "")
 
 # A library holds at most this many books, each at most this many words.
 # Small libraries find the same bugs, and a failure shrinks to a small one anyway.
@@ -66,7 +70,7 @@ def libraries() -> st.SearchStrategy[dict[str, Book]]:
 
 def questions() -> st.SearchStrategy[list[str]]:
     """Make a question as a list of pieces: words, with AND or OR (or nothing) between them."""
-    joins = st.sampled_from(("AND", "OR", "and", "or", ""))
+    joins = st.sampled_from(JOINS)
     rest = st.lists(st.tuples(joins, st.sampled_from(SEARCH_WORDS)), max_size=4)
     return st.tuples(st.sampled_from(SEARCH_WORDS), rest).map(lay_out_question)
 
