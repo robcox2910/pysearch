@@ -64,6 +64,14 @@ class TestLoadErrors:
         with pytest.raises(PersistenceError, match="format"):
             load_engine(path)
 
+    @pytest.mark.parametrize("version", [True, 1.0])
+    def test_format_must_be_an_exact_int(self, tmp_path: Path, version: object) -> None:
+        """Regression: ``true`` and ``1.0`` equal 1 in Python, so they were accepted."""
+        path = tmp_path / "engine.json"
+        path.write_text(json.dumps({"format": version, "documents": {}}), encoding="utf-8")
+        with pytest.raises(PersistenceError, match=r"engine\.json"):
+            load_engine(path)
+
     def test_a_file_that_is_not_text_raises_persistence_error(self, tmp_path: Path) -> None:
         """Regression: a lone 0x80 byte (found by Hypothesis) raised UnicodeDecodeError."""
         path = tmp_path / "engine.json"
