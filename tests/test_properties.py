@@ -22,6 +22,7 @@ import tempfile
 from itertools import pairwise
 from pathlib import Path
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -178,3 +179,13 @@ def test_any_save_shaped_json_load_or_raise_persistence_error(document: object) 
         path = Path(folder) / "engine.json"
         path.write_text(json.dumps(document), encoding="utf-8")
         load_or_refuse(path)
+
+
+@given(version=any_json().filter(lambda value: type(value) is not int or value != 1))
+def test_any_format_but_the_int_one_is_refused(version: object) -> None:
+    """A save file whose format is not exactly the int 1 (``true``, ``1.0``, ...) is refused."""
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / "engine.json"
+        path.write_text(json.dumps({"format": version, "documents": {}}), encoding="utf-8")
+        with pytest.raises(PersistenceError, match=r"engine\.json"):
+            load_engine(path)

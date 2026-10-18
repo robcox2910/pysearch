@@ -60,8 +60,10 @@ class SearchEngine:
             TypeError: If *data* doesn't have the expected shape.
 
         """
-        if data.get("format") != SAVE_FORMAT:
-            msg = f"unknown save format {data.get('format')!r} (expected {SAVE_FORMAT})"
+        version = data.get("format")
+        # ``True == 1`` and ``1.0 == 1`` in Python, so insist on a real int.
+        if type(version) is not int or version != SAVE_FORMAT:
+            msg = f"unknown save format {version!r} (expected the integer {SAVE_FORMAT})"
             raise ValueError(msg)
         documents = data["documents"]
         if not isinstance(documents, dict):

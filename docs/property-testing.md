@@ -120,6 +120,7 @@ PySearch has five more properties:
 | A loaded engine holds the same books and answers every question the same way | `test_save_then_load_gives_back_the_same_engine` |
 | Whatever bytes are in the file, loading gives an engine or a `PersistenceError` | `test_any_bytes_on_disk_load_or_raise_persistence_error` |
 | Whatever a save-shaped JSON file holds, loading gives an engine or a `PersistenceError` | `test_any_save_shaped_json_load_or_raise_persistence_error` |
+| A save file whose format is anything but the whole number 1 (`true`, `1.0`, ...) is refused | `test_any_format_but_the_int_one_is_refused` |
 
 **A search that does nothing -- always answering `[]` -- passes the
 ordering property**, because an empty list is perfectly in order. That's
