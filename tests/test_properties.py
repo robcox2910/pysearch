@@ -28,8 +28,9 @@ from hypothesis import strategies as st
 from pysearch.engine import SearchEngine
 from pysearch.errors import PersistenceError, QueryParseError
 from pysearch.persistence import load_engine, save_engine
+from pysearch.tokenizer import split_words
 from tests.brute_force import Book, brute_force_search, text_of
-from tests.strategies import SEARCH_WORDS, doc_ids, libraries, questions
+from tests.strategies import doc_ids, libraries, questions
 
 # --- Strategies: recipes for random inputs -----------------------------------
 # doc_ids(), libraries() and questions() live in tests/strategies.py, shared
@@ -152,7 +153,9 @@ def test_save_then_load_gives_back_the_same_engine(texts: dict[str, str]) -> Non
         loaded = load_engine(path)
     # ``repr`` also checks the order the books were filed in, and every type.
     assert repr(loaded.to_dict()) == repr(original.to_dict())
-    for word in SEARCH_WORDS:
+    # Ask about every word really in the books (random text seldom holds
+    # "cat" or "dog", so a fixed word list would mostly compare [] with []).
+    for word in sorted({word for text in texts.values() for word in split_words(text)}):
         assert loaded.search(word) == original.search(word)
 
 

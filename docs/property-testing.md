@@ -322,9 +322,11 @@ and the shrunk input became an example test in
 We found two cousins by *reading* the code, not with the property:
 a 5,000-digit number (`ValueError`) and 100,000 `[` characters
 (`RecursionError`) also crashed the loader. Random JSON is almost never
-that big. Both are now a `PersistenceError` and pinned as tests. So was
-a 2,000-word question, which used to crash `search` with
-`RecursionError`; it is now answered like any other.
+that big. Both are now a `PersistenceError` and pinned as tests.
+Reading the code also turned up a third bug, in `search` this time: a
+question of about 1,000 words or more crashed it with `RecursionError`.
+No property found that one either. A 2,000-word question is now
+answered like any other, and pinned as a test.
 
 ## Run It Yourself
 
@@ -355,6 +357,6 @@ top of the project.
 
 Write one new property for PySearch. Does `cats OR dogs` give exactly
 the same answer as `dogs OR cats`, whatever is on the shelves? What's
-the strategy? (`libraries()` and two words from `SEARCH_WORDS`.) What's
+the strategy? (Look in `tests/strategies.py`.) What's
 the `assert`? Try it in a scratch file and watch it pass. Then break
 `OR` on purpose and watch the inspector find it.
