@@ -159,3 +159,15 @@ class TestTiesAreOrderedByName:
             engine.add(doc_id, "fruit salad")
         engine.add("other", "vegetables")
         assert [doc for doc, _ in engine.search("fruit")] == ["apple", "mango", "pear"]
+
+
+class TestLongQuestions:
+    """A long question is answered like a short one, never a crash."""
+
+    def test_a_two_thousand_word_question_is_answered(self) -> None:
+        """Regression: a question of 2,000 words raised RecursionError."""
+        engine = SearchEngine()
+        engine.add("d1", "cats nap")
+        engine.add("d2", "dogs nap")
+        question = " OR ".join(["cats"] * 1000 + ["dogs"] * 1000)
+        assert sorted(doc for doc, _ in engine.search(question)) == ["d1", "d2"]
