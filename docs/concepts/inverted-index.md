@@ -1,3 +1,8 @@
+---
+title: "What is an inverted index? How search engines find words"
+description: "How an inverted index maps each word to the documents that contain it, the core of every search engine, with working Python code."
+---
+
 # Inverted Index
 
 ## The Librarian's Memory
