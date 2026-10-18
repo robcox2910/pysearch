@@ -1,3 +1,8 @@
+---
+title: "How TF-IDF ranks search results"
+description: "How TF-IDF scores documents so the most relevant result comes first, explained simply with a working search engine written in Python."
+---
+
 # TF-IDF
 
 ## The Relevance Score
