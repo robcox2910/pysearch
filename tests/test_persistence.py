@@ -97,6 +97,27 @@ class TestLoadErrors:
         with pytest.raises(PersistenceError, match="format"):
             load_engine(path)
 
+    def test_a_file_that_is_not_text_raises_persistence_error(self, tmp_path: Path) -> None:
+        """Regression: a lone 0x80 byte (found by Hypothesis) raised UnicodeDecodeError."""
+        path = tmp_path / "engine.json"
+        path.write_bytes(b"\x80")
+        with pytest.raises(PersistenceError, match=r"engine\.json"):
+            load_engine(path)
+
+    def test_a_number_too_long_to_read_raises_persistence_error(self, tmp_path: Path) -> None:
+        """Regression: a 5,000-digit number raised ValueError (Python's int digit limit)."""
+        path = tmp_path / "engine.json"
+        path.write_text("1" * 5000, encoding="utf-8")
+        with pytest.raises(PersistenceError, match=r"engine\.json"):
+            load_engine(path)
+
+    def test_json_nested_too_deep_raises_persistence_error(self, tmp_path: Path) -> None:
+        """Regression: 100,000 ``[`` characters raised RecursionError."""
+        path = tmp_path / "engine.json"
+        path.write_text("[" * 100_000, encoding="utf-8")
+        with pytest.raises(PersistenceError, match=r"engine\.json"):
+            load_engine(path)
+
 
 class TestSafeSaving:
     """Saving never leaves a half-written file behind."""
