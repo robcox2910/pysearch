@@ -9,52 +9,19 @@ import os
 from pathlib import Path
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
 
 from pysearch.engine import SearchEngine
-from pysearch.errors import PersistenceError, PySearchError
+from pysearch.errors import PersistenceError
 from pysearch.persistence import load_engine, save_engine
-
-WORDS = st.text(alphabet="abcdefghij", min_size=1, max_size=6)
-DOCUMENTS = st.lists(
-    st.tuples(
-        st.text(alphabet="xyz0123456789", min_size=1, max_size=8), st.lists(WORDS, max_size=8)
-    ),
-    max_size=8,
-    unique_by=lambda doc: doc[0],
-)
-MAX_EXAMPLES = 50
-
-
-def _answer(engine: SearchEngine, query: str) -> object:
-    """Return the engine's results for *query*, or the kind of error it raised."""
-    try:
-        return engine.search(query)
-    except PySearchError as exc:
-        return type(exc)
 
 
 class TestRoundTrip:
-    """An engine saved and loaded answers every question the same way."""
+    """An engine saved and loaded keeps working.
 
-    @settings(max_examples=MAX_EXAMPLES)
-    @given(DOCUMENTS)
-    def test_round_trip_gives_identical_search_results(
-        self, tmp_path_factory: pytest.TempPathFactory, documents: list[tuple[str, list[str]]]
-    ) -> None:
-        """For every word in the documents, both engines give the same results."""
-        original = SearchEngine()
-        for doc_id, words in documents:
-            original.add(doc_id, " ".join(words))
-        path = tmp_path_factory.mktemp("save") / "engine.json"
-
-        save_engine(original, path)
-        loaded = load_engine(path)
-
-        assert loaded.document_count == original.document_count
-        for word in {w for _, words in documents for w in words}:
-            assert _answer(loaded, word) == _answer(original, word)
+    The save/load round-trip for *any* engine is a property:
+    ``test_save_then_load_gives_back_the_same_engine`` in
+    ``tests/test_properties.py``.
+    """
 
     def test_loaded_engine_keeps_accepting_new_documents(self, tmp_path: Path) -> None:
         """A loaded engine still rejects duplicate ids and accepts new ones."""
