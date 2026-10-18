@@ -40,6 +40,6 @@ never half of each.
 
 ## When the Notebook Is Damaged
 
-If the file is missing, isn't valid JSON, or isn't a saved search engine,
+If the file is missing, isn't text at all, isn't valid JSON, or isn't a saved search engine,
 `load_engine` raises a `PersistenceError` that names the file. It never
 quietly hands back an empty library.

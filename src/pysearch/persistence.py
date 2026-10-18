@@ -38,19 +38,21 @@ def load_engine(path: str | Path) -> SearchEngine:
         A new engine holding the saved documents.
 
     Raises:
-        PersistenceError: If the file is missing, unreadable, not valid
-            JSON, or not a saved engine.
+        PersistenceError: If the file is missing, unreadable, not text, not
+            valid JSON, or not a saved engine.
 
     """
     file_path = Path(path)
     try:
         raw = file_path.read_text(encoding="utf-8")
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:  # missing, unreadable, or not text at all
         msg = f"Failed to load search engine from {file_path}: {exc}"
         raise PersistenceError(msg) from exc
+    # Not JSON (JSONDecodeError is a kind of ValueError), a number too long
+    # for Python to read (ValueError), or lists nested too deep (RecursionError).
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError as exc:
+    except (ValueError, RecursionError) as exc:
         msg = f"Invalid JSON in {file_path}: {exc}"
         raise PersistenceError(msg) from exc
     if not isinstance(data, dict):

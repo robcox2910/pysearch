@@ -102,7 +102,14 @@ class SearchEngine:
         return self._index.document_count
 
     def _execute(self, query: SearchQuery) -> list[str]:
-        """Recursively execute a parsed query against the index.
+        """Work out which documents match a parsed query tree.
+
+        A long question makes a tall tree (2,000 words, 2,000 levels), too
+        tall for a function that calls itself once per level -- Python stops
+        at about 1,000 calls deep. So instead of calling itself, this keeps
+        its own to-do pile: each branch is visited once on the way down
+        (to queue its two halves) and once on the way back up (to join
+        their answers).
 
         Args:
             query: A parsed ``SearchQuery`` tree.
@@ -111,23 +118,29 @@ class SearchEngine:
             A list of matching document IDs.
 
         """
-        if isinstance(query, TermQuery):
-            return self._index.search(query.term)
-        if isinstance(query, AndQuery):
-            left = set(self._execute(query.left))
-            right = set(self._execute(query.right))
-            return list(left & right)
-        # Must be OrQuery (type narrowing guarantees this).
-        left = set(self._execute(query.left))
-        right = set(self._execute(query.right))
-        return list(left | right)
+        to_do: list[tuple[SearchQuery, bool]] = [(query, False)]
+        answers: list[set[str]] = []
+        while to_do:
+            node, halves_done = to_do.pop()
+            if isinstance(node, TermQuery):
+                answers.append(set(self._index.search(node.term)))
+            elif not halves_done:
+                # Come back to this branch once both halves are answered.
+                to_do.extend([(node, True), (node.right, False), (node.left, False)])
+            else:
+                right = answers.pop()
+                left = answers.pop()
+                answers.append(left & right if isinstance(node, AndQuery) else left | right)
+        return list(answers[0])
 
     @staticmethod
     def _collect_terms(query: SearchQuery) -> list[str]:
-        """Collect every term from a query tree for ranking.
+        """Collect every term from a query tree for ranking, left to right.
 
         Walk the whole tree and gather every leaf -- like picking every
-        apple off a tree instead of just the first one you see.
+        apple off a tree instead of just the first one you see. Like
+        :meth:`_execute`, it keeps its own to-do pile so a tall tree can't
+        make it crash.
 
         Args:
             query: A parsed ``SearchQuery`` tree.
@@ -136,7 +149,12 @@ class SearchEngine:
             A list of all term strings in the query.
 
         """
-        if isinstance(query, TermQuery):
-            return [query.term]
-        # Must be AndQuery or OrQuery -- collect from both branches.
-        return SearchEngine._collect_terms(query.left) + SearchEngine._collect_terms(query.right)
+        terms: list[str] = []
+        to_do: list[SearchQuery] = [query]
+        while to_do:
+            node = to_do.pop()
+            if isinstance(node, TermQuery):
+                terms.append(node.term)
+            else:
+                to_do.extend([node.right, node.left])  # left comes off the pile first
+        return terms

@@ -46,6 +46,7 @@ nav:
   - Saving Your Index: concepts/saving.md
   - TF-IDF: concepts/tfidf.md
   - Tokenizer: concepts/tokenizer.md
+  - Property Testing: property-testing.md
   # series-nav:start
   - The series:
       - Series home: https://robcox2910.github.io/

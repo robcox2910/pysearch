@@ -11,3 +11,4 @@ htmlcov/
 .DS_Store
 src/pysearch/_version.py
 site/
+.hypothesis/
