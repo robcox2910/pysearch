@@ -85,6 +85,14 @@ a high score. Common words like "the" get a low score.
 | **Query Parser** | Understanding your question | Parse "cat AND dog" into a structured query |
 | **Search Engine** | The librarian herself | Tie everything together |
 
+## Install
+
+```bash
+pip install fromscratch-pysearch
+```
+
+Or get the whole series at once with `pip install fromscratch-pystack`. To read the code or run the tests, clone it from [GitHub](https://github.com/robcox2910/pysearch).
+
 ## Let's Start!
 
 Head to [Tokenizer](concepts/tokenizer.md) to learn how text gets
