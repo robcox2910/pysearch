@@ -1,5 +1,5 @@
 [project]
-name = "pysearch"
+name = "fromscratch-pysearch"
 dynamic = ["version"]
 description = "An educational full-text search engine built from scratch in Python"
 readme = "README.md"
