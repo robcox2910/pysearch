@@ -8,7 +8,7 @@ model check use her to check the real engine's answers.
 
 She borrows only two things from PySearch: the list of stop words and the
 stemmer that turns "cats" into "cat". Those decide what *counts* as the
-same word. Everything else -- finding the books, AND and OR, the TF-IDF
+same word. Everything else -- finding the books, AND, OR and NOT, the TF-IDF
 scores and the order -- she works out on her own.
 """
 
@@ -41,8 +41,9 @@ def brute_force_search(library: dict[str, Book], question: list[str]) -> list[tu
 
     The question is a list of pieces such as ``["cats", "OR", "dog", "fox"]``,
     read left to right: two words side by side must both match, so that one
-    means ``(cats OR dog) AND fox``. Each matching book scores the sum, over
-    every word in the question, of (times the word is in the book) x
+    means ``(cats OR dog) AND fox``. ``NOT`` takes away every book with the
+    next word. Each matching book scores the sum, over every word in the
+    question except the ``NOT`` ones, of (times the word is in the book) x
     log(books in the library / books with the word). Best score first;
     equal scores go in order of doc id.
     """
@@ -69,11 +70,14 @@ def brute_force_search(library: dict[str, Book], question: list[str]) -> list[tu
     words = [question[0]]
     join = "AND"
     for piece in question[1:]:
-        if piece.upper() in {"AND", "OR"}:
+        if piece.upper() in {"AND", "OR", "NOT"}:
             join = piece.upper()
             continue
-        matches = matches & books_with(piece) if join == "AND" else matches | books_with(piece)
-        words.append(piece)
+        if join == "NOT":
+            matches -= books_with(piece)  # filters only: it adds nothing to the score
+        else:
+            matches = matches & books_with(piece) if join == "AND" else matches | books_with(piece)
+            words.append(piece)
         join = "AND"
     answers = [(doc_id, score(doc_id, words)) for doc_id in matches]
     return sorted(answers, key=lambda answer: (-answer[1], answer[0]))

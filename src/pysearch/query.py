@@ -1,8 +1,8 @@
 """Parse search queries into a structured representation.
 
 Understanding your question is the first step to answering it. The query
-parser reads what you typed -- like ``cats AND dogs`` -- and turns it into a
-tree that the search engine can execute step by step.
+parser reads what you typed -- like ``cats AND dogs`` or ``cats NOT dogs`` --
+and turns it into a tree that the search engine can execute step by step.
 """
 
 from dataclasses import dataclass
@@ -22,22 +22,34 @@ class TermQuery:
 class AndQuery:
     """A query requiring both the left and right sub-queries to match."""
 
-    left: TermQuery | AndQuery | OrQuery
-    right: TermQuery | AndQuery | OrQuery
+    left: SearchQuery
+    right: SearchQuery
 
 
 @dataclass
 class OrQuery:
     """A query requiring either the left or right sub-query to match."""
 
-    left: TermQuery | AndQuery | OrQuery
-    right: TermQuery | AndQuery | OrQuery
+    left: SearchQuery
+    right: SearchQuery
 
 
-SearchQuery = TermQuery | AndQuery | OrQuery
+@dataclass
+class NotQuery:
+    """A query keeping the left side's matches that the right side does *not* match.
+
+    Like sorting a pile of books: take everything on the left, then put back
+    any book that mentions the word on the right.
+    """
+
+    left: SearchQuery
+    right: SearchQuery
 
 
-_OPERATORS = frozenset({"AND", "OR"})
+type SearchQuery = TermQuery | AndQuery | OrQuery | NotQuery
+
+
+_OPERATORS = frozenset({"AND", "OR", "NOT"})
 
 
 def parse_query(text: str) -> SearchQuery:
@@ -47,6 +59,7 @@ def parse_query(text: str) -> SearchQuery:
 
     - ``"word"`` -- a single term
     - ``"a AND b"`` / ``"a OR b"`` -- both / either must match
+    - ``"a NOT b"`` (or ``"a AND NOT b"``) -- a must match and b must not
     - ``"a b"`` -- words next to each other must *all* match (an implied AND)
     - longer chains like ``"a AND b OR c"`` are read left to right:
       ``(a AND b) OR c``
@@ -78,6 +91,9 @@ def parse_query(text: str) -> SearchQuery:
     for word in words:
         operator = word.upper()
         if operator in _OPERATORS:
+            if operator == "NOT" and expecting_term and pending_operator == "AND" and result:
+                pending_operator = "NOT"  # "a AND NOT b" reads the same as "a NOT b"
+                continue
             if expecting_term:
                 msg = f"The {operator} operator needs a word on both sides: {text!r}"
                 raise QueryParseError(msg)
@@ -112,7 +128,9 @@ def _word_query(word: str) -> SearchQuery | None:
 
 
 def _combine(left: SearchQuery, operator: str, right: SearchQuery) -> SearchQuery:
-    """Join two queries with AND or OR."""
+    """Join two queries with AND, OR or NOT."""
     if operator == "OR":
         return OrQuery(left=left, right=right)
+    if operator == "NOT":
+        return NotQuery(left=left, right=right)
     return AndQuery(left=left, right=right)
