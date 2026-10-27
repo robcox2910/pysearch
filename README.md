@@ -66,8 +66,8 @@ index.add_document("doc2", "cats and birds")
 index.add_document("doc3", "dogs and birds")
 
 print(index.search("cat"))            # ['doc1', 'doc2']
-print(index.search_and(["cat", "dog"]))  # ['doc1']
-print(index.search_or(["cat", "dog"]))   # ['doc1', 'doc2', 'doc3']
+print(sorted(index.search_and(["cat", "dog"])))  # ['doc1']
+print(sorted(index.search_or(["cat", "dog"])))   # ['doc1', 'doc2', 'doc3']
 ```
 
 ## Features

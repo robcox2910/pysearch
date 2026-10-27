@@ -29,9 +29,15 @@ the index small and results relevant.
 
 ## Stemming (Simplified)
 
-"running", "runs", and "ran" all mean the same root word: "run".
-**Stemming** reduces words to their root form so they all match.
-Our simplified stemmer handles common English suffixes.
+"played", "playing" and "plays" all come from the same root word: "play".
+**Stemming** trims words back to a root so they match each other.
+
+Our stemmer is deliberately simple: it snips common English endings like
+"-ing", "-ed" and "-s". That works for many words, but not all. "running"
+becomes "runn" (the doubled letter stays), and "ran" stays "ran", because a
+word that changes its spelling can't be fixed by snipping an ending. Real
+search engines use cleverer stemmers (such as Porter or Snowball) or a
+dictionary. Trying one is a good exercise!
 
 ## What We Test
 
