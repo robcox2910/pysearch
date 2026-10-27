@@ -94,6 +94,23 @@ class TestBooleanQueries:
         assert "doc2" in doc_ids
         assert "doc3" not in doc_ids
 
+    def test_not_query_leaves_out_the_word(self) -> None:
+        """Verify 'cat NOT dog' keeps cat books that never mention dogs."""
+        engine = SearchEngine()
+        engine.add("doc1", "cat dog")
+        engine.add("doc2", "cat bird")
+        engine.add("doc3", "dog bird")
+        assert [doc_id for doc_id, _ in engine.search("cat NOT dog")] == ["doc2"]
+
+    def test_left_out_words_do_not_count_towards_the_score(self) -> None:
+        """A NOT word only filters; it adds nothing to the score."""
+        engine = SearchEngine()
+        engine.add("doc1", "cat dog")
+        engine.add("doc2", "cat bird")
+        engine.add("doc3", "fish")
+        cat_score = dict(engine.search("cat"))["doc2"]
+        assert engine.search("cat NOT dog") == [("doc2", cat_score)]
+
     def test_and_no_overlap(self) -> None:
         """Verify AND returns empty when no document has both terms."""
         engine = SearchEngine()

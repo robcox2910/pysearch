@@ -3,7 +3,7 @@
 import pytest
 
 from pysearch.errors import QueryParseError
-from pysearch.query import AndQuery, OrQuery, TermQuery, parse_query
+from pysearch.query import AndQuery, NotQuery, OrQuery, TermQuery, parse_query
 
 
 class TestTermQuery:
@@ -130,3 +130,34 @@ class TestQueryWords:
         """A query with nothing searchable left is reported clearly."""
         with pytest.raises(QueryParseError, match="searchable"):
             parse_query("the of a")
+
+
+class TestNotQuery:
+    """NOT keeps the books on its left that don't mention the word on its right."""
+
+    def test_not_between_two_words(self) -> None:
+        """Verify 'cats NOT dogs' is parsed as a NotQuery."""
+        assert parse_query("cats NOT dogs") == NotQuery(
+            left=TermQuery(term="cats"), right=TermQuery(term="dogs")
+        )
+
+    def test_and_not_means_the_same(self) -> None:
+        """'cats AND NOT dogs' reads the same as 'cats NOT dogs'."""
+        assert parse_query("cats AND NOT dogs") == parse_query("cats NOT dogs")
+
+    def test_lowercase_not_is_an_operator_too(self) -> None:
+        """Like and/or, a lowercase not is an operator, not an ignored word."""
+        assert parse_query("cats not dogs") == parse_query("cats NOT dogs")
+
+    def test_not_chains_left_to_right(self) -> None:
+        """'cats NOT dogs OR fish' means (cats NOT dogs) OR fish."""
+        assert parse_query("cats NOT dogs OR fish") == OrQuery(
+            left=NotQuery(left=TermQuery(term="cats"), right=TermQuery(term="dogs")),
+            right=TermQuery(term="fish"),
+        )
+
+    @pytest.mark.parametrize("text", ["NOT dogs", "cats NOT", "cats OR NOT dogs"])
+    def test_not_needs_a_word_on_both_sides(self, text: str) -> None:
+        """NOT takes away from something, so it needs a word before and after."""
+        with pytest.raises(QueryParseError, match="operator"):
+            parse_query(text)

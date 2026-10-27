@@ -8,7 +8,7 @@ The search engine is the librarian herself. She knows how to file new books
 from typing import Self, cast
 
 from pysearch.index import InvertedIndex
-from pysearch.query import AndQuery, SearchQuery, TermQuery, parse_query
+from pysearch.query import AndQuery, NotQuery, OrQuery, SearchQuery, TermQuery, parse_query
 from pysearch.tfidf import rank_results
 
 # Bump this if the saved layout ever changes, so old files are refused, not misread.
@@ -82,7 +82,7 @@ class SearchEngine:
 
         Args:
             query_text: A query string such as ``"cats"``, ``"cats AND dogs"``,
-                or ``"cats OR dogs"``.
+                ``"cats OR dogs"`` or ``"cats NOT dogs"``.
 
         Returns:
             A list of ``(doc_id, score)`` tuples sorted by relevance.
@@ -132,7 +132,7 @@ class SearchEngine:
             else:
                 right = answers.pop()
                 left = answers.pop()
-                answers.append(left & right if isinstance(node, AndQuery) else left | right)
+                answers.append(_join(node, left, right))
         return list(answers[0])
 
     @staticmethod
@@ -157,6 +157,17 @@ class SearchEngine:
             node = to_do.pop()
             if isinstance(node, TermQuery):
                 terms.append(node.term)
+            elif isinstance(node, NotQuery):
+                to_do.append(node.left)  # a NOT word only filters; it never adds to a score
             else:
                 to_do.extend([node.right, node.left])  # left comes off the pile first
         return terms
+
+
+def _join(node: AndQuery | OrQuery | NotQuery, left: set[str], right: set[str]) -> set[str]:
+    """Combine the books matching each half of a branch the way its operator says."""
+    if isinstance(node, AndQuery):
+        return left & right
+    if isinstance(node, OrQuery):
+        return left | right
+    return left - right

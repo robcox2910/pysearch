@@ -40,6 +40,7 @@ for doc_id, score in results:
 # Boolean queries
 results = engine.search("python AND java")   # documents with both
 results = engine.search("python OR java")    # documents with either
+results = engine.search("python NOT java")   # python, but never java
 ```
 
 ### Using the Tokenizer Directly
@@ -78,7 +79,7 @@ print(sorted(index.search_or(["cat", "dog"])))   # ['doc1', 'doc2', 'doc3']
   instant lookups
 - **TF-IDF Ranking** -- Score and rank results so the most relevant documents
   come first
-- **Boolean Queries** -- Combine search terms with AND and OR operators
+- **Boolean Queries** -- Combine search terms with AND, OR and NOT operators
 - **100% Typed** -- Full type annotations with strict Pyright checking
 
 ## Quick Start
