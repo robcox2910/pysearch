@@ -3,7 +3,7 @@ title: "Build your own search engine in Python"
 description: "A full-text search engine built from scratch in Python: tokenizing, an inverted index, TF-IDF ranking and boolean queries, explained simply."
 ---
 
-# What Is a Search Engine?
+# PySearch: Build your own search engine in Python
 
 ## The Librarian Who Read Every Book
 
